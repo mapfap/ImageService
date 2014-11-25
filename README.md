@@ -1,6 +1,5 @@
 # Image Service
-RESTful Image Optimisation Web Service
-Edit and access images using a web service
+RESTful image optimisation web service
 
 ## What's it for?
 * Mobile App: Smartphones don't have enough memory to quickly process images, and it drains the battery.  Image Editor Service offloads this work to a remote service.
@@ -47,6 +46,6 @@ Note: use maven to install all packages except
 * What if user send very large file
 * What if user repeatedly requests  1x1, 1x2, 1x3, ..., 1x10000000 ~ This would really hurts the server.
 * What if user try to get all images by keep scanning through increasing ID /images/1, /images/2, ..., /images/1000
-```
+** ```
 Fixed: Use hashed ID instead of serialized ID.
 ```
