@@ -58,3 +58,12 @@ Note: use maven to install all packages except
   ```
     Fixed: Use hashed ID instead of serialized ID.
   ```
+  
+## Supported Formats
+* Windows bitmaps - *.bmp, *.dib
+* JPEG files - *.jpeg, *.jpg, *.jpe
+* JPEF 2000 files - *.jp2
+* Portable Network Graphics - *.png
+* Portable image format - *.pbm, *.pgm, *.ppm
+* Sun raster - *.sr, *.ras
+* TIFF files - *.tiff, *tif
