@@ -35,6 +35,12 @@ Get image with default size, apply gaussian effect and save it as new image
 ## Client
 Very simple web browser client [here](https://github.com/mapfap/ImageService-SimpleClient)
 
+## API Specification
+[see](https://github.com/mapfap/ImageService/wiki/API-Specification)
+
+## Software Design
+[see](https://github.com/mapfap/ImageService/wiki/Software-Design)
+
 ## Dependencies
 * Jersey
 * Jetty
