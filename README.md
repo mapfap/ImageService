@@ -1,4 +1,5 @@
 # Image Service
+RESTful Image Optimisation Web Service
 Edit and access images using a web service
 
 ## What's it for?
@@ -32,10 +33,16 @@ GET /images/002?gaussian=20&duplicate=true
 Get image with default size, apply gaussian effect and save it as new image
 -> return location header instead of an image
 
-## How is it?
-* JAX-RS RESTful web service.
-* Image processing using [OpenCV](http://opencv.org)
+## Dependencies
+* Jersey
+* Jetty
+* Apache Commons
+* Apache Derby
+* EclipseLink JPA
+
+Note: use maven to install all packages except
+* [OpenCV 2.4.10](http://opencv.org), required native library (need to compile its source)
 
 ## Security Consideration
 * What if user send very large file
-* What if user repeatedly requests  1x1, 1x2, 1x3, ..., 1x10000000 ~ This would really hurts the server.  
+* What if user repeatedly requests  1x1, 1x2, 1x3, ..., 1x10000000 ~ This would really hurts the server.
