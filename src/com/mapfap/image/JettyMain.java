@@ -6,7 +6,11 @@ import java.net.URI;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.server.ServerProperties;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
+
+import com.mapfap.image.resource.ImageResource;
 
 /**
  * 
@@ -39,25 +43,23 @@ public class JettyMain {
 	 */
 	public static URI startServer(int port) {
 		try {
-			server = new Server(port);
-
-			// Options are: SESSIONS, NO_SESSIONS, SECURITY, NO_SECURITY
+			
+			ResourceConfig resourceConfig = new ResourceConfig();		
+			resourceConfig.packages(ImageResource.class.getPackage().getName());
+			resourceConfig.register(MultiPartFeature.class);
+			ServletContainer servletContainer = new ServletContainer(resourceConfig);
+			ServletHolder sh = new ServletHolder(servletContainer);                
+			Server server = new Server(port);		
 			ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-			context.setContextPath("/");
-
-			ServletHolder holder = new ServletHolder(org.glassfish.jersey.servlet.ServletContainer.class);
-
-			holder.setInitParameter(ServerProperties.PROVIDER_PACKAGES, "com.mapfap.image.resource");
-			context.addServlet(holder, "/*");
-
+	        context.setContextPath("/");
+	        context.addServlet(sh, "/*");
 			server.setHandler(context);
 
 			System.out.println("Starting Jetty server on port " + port);
 			server.start();
-
-			// returning server.getURI() is
-			// somehow cause an error with KUWIN network.
-
+//
+//			// returning server.getURI() is
+//			// somehow cause an error with KUWIN network.
 			return new URI("http://127.0.0.1:" + port + "/");
 		} catch (Exception ex) {
 			ex.printStackTrace();

@@ -1,19 +1,24 @@
 package com.mapfap.image.resource;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.inject.Singleton;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 @Singleton
 @Path("/images")
@@ -30,9 +35,20 @@ public class ImageResource {
 	
 	@POST
 	@Path("")
-	public Response storeImage(@HeaderParam("Content-Type") String type, File file) {
-		System.out.println(file.length());
-		System.out.println(type);
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public Response storeImage(@FormDataParam("file") byte[] bytes, @FormDataParam("file") FormDataContentDisposition contentDispositionHeader) {
+		String filePath = "images/" + contentDispositionHeader.getFileName();
+		FileOutputStream out;
+		try {
+			out = new FileOutputStream(filePath);
+			out.write(bytes);
+			out.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+//		Mat source = Highgui.imread(file, Highgui.CV_LOAD_IMAGE_COLOR);
+		
 		URI uri = null;
 		try {
 			uri = new URI("o");
