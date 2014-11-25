@@ -46,6 +46,6 @@ Note: use maven to install all packages except
 * What if user send very large file
 * What if user repeatedly requests  1x1, 1x2, 1x3, ..., 1x10000000 ~ This would really hurts the server.
 * What if user try to get all images by keep scanning through increasing ID /images/1, /images/2, ..., /images/1000
-** ```
-Fixed: Use hashed ID instead of serialized ID.
-```
+  ```
+    Fixed: Use hashed ID instead of serialized ID.
+  ```

@@ -24,6 +24,7 @@ import javax.ws.rs.core.UriInfo;
 import org.eclipse.jetty.http.HttpStatus;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
@@ -39,9 +40,12 @@ public class ImageResource {
 	@Context
 	UriInfo uriInfo;
 	private static ImagePersistence persistence;
+	
+	
 
 	public ImageResource() {
 		System.load(new File("/usr/local/share/OpenCV/java/libopencv_java2410.dylib").getAbsolutePath());
+//		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		
 		EntityManagerFactory factory = Persistence.createEntityManagerFactory("images");
 		EntityManager manager = factory.createEntityManager();
