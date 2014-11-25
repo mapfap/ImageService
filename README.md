@@ -33,7 +33,7 @@ Get image with default size, apply gaussian effect and save it as new image
 -> return location header instead of an image
 
 ## Client
-Very simple web browser client [here](https://gitgub.com/mapfap/ImageService-SimpleClient)
+Very simple web browser client [here](https://github.com/mapfap/ImageService-SimpleClient)
 
 ## Dependencies
 * Jersey
