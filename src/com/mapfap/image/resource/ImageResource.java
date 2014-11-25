@@ -3,8 +3,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Calendar;
 
 import javax.inject.Singleton;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -25,15 +29,24 @@ import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
+import com.mapfap.image.entity.Image;
+import com.mapfap.image.persistence.ImagePersistence;
+
 @Singleton
 @Path("/images")
 public class ImageResource {
 
 	@Context
 	UriInfo uriInfo;
+	private static ImagePersistence persistence;
 
 	public ImageResource() {
 		System.load(new File("/usr/local/share/OpenCV/java/libopencv_java2410.dylib").getAbsolutePath());
+		
+		EntityManagerFactory factory = Persistence.createEntityManagerFactory("images");
+		EntityManager manager = factory.createEntityManager();
+		persistence = new ImagePersistence(manager);
+//		persistence.clearAll();
 	}
 	
 	public static final String FILE_STORAGE = "images/";
@@ -42,7 +55,10 @@ public class ImageResource {
 	@Path("")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response storeImage(@FormDataParam("file") byte[] bytes, @FormDataParam("file") FormDataContentDisposition contentDispositionHeader) {
-		String filePath = FILE_STORAGE + contentDispositionHeader.getFileName();
+		String fileName = contentDispositionHeader.getFileName().substring(15);
+		fileName = Calendar.getInstance().getTimeInMillis() + "_" + fileName; // prevent name conflicted.
+		
+		String filePath = FILE_STORAGE + fileName;
 		try {
 			FileOutputStream out = new FileOutputStream(filePath);
 			out.write(bytes);
@@ -52,9 +68,14 @@ public class ImageResource {
 			throw new WebApplicationException();
 		}
 		
+		Image image = new Image(fileName);
+		persistence.save(image);
+		String id = persistence.load(image.getId()).getId(); // make sure it's saved.
+		
 		URI uri = null;
 		try {
-			uri = new URI("o");
+			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "100x100");
+			System.out.println(uri);
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
@@ -62,9 +83,9 @@ public class ImageResource {
 	}
 
 	@GET 
-	@Path("{id : \\d+}/{width : \\d+}x{height : \\d+}")
+	@Path("{id}/{width : \\d+}x{height : \\d+}")
 	@Produces({ "image/png" })
-	public Response getImage(@PathParam("id") long id, @PathParam("width") int width, @PathParam("height") int height) {
+	public Response getImage(@PathParam("id") String id, @PathParam("width") int width, @PathParam("height") int height) {
 		if (width * height == 0) {
 			return Response
 					.status(HttpStatus.BAD_REQUEST_400)
@@ -73,12 +94,21 @@ public class ImageResource {
 					.build();
 		}
 		
-		Mat original = Highgui.imread("test.png");
+		Image image = persistence.load(id);
+		
+		if (image == null) {
+			return Response.status(HttpStatus.NOT_FOUND_404).build();
+		}
+		
+		String fileName = image.getFileName();
+		String newFileName = FILE_STORAGE + "_" +fileName;
+		
+		Mat original = Highgui.imread(FILE_STORAGE + fileName);
 		Mat result = new Mat();
 		Size size = new Size(width, height);
 		Imgproc.resize(original, result, size);
-		Highgui.imwrite("test2.png", result);
+		Highgui.imwrite(newFileName, result);
 		
-		return Response.ok(new File("test2.png")).build();
+		return Response.ok(new File(newFileName)).build();
 	}
 }

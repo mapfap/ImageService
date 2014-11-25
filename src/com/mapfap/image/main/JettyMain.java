@@ -1,4 +1,4 @@
-package com.mapfap.image;
+package com.mapfap.image.main;
 
 import java.io.IOException;
 import java.net.URI;

@@ -1,11 +1,11 @@
 ----------------------------------------------------------------
-Wed Oct 08 14:04:16 ICT 2014:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.11.1.1 - (1616546): instance a816c00e-0148-ee92-93cb-000003b4b878 
-on database directory /private/tmp/contacts with class loader sun.misc.Launcher$AppClassLoader@23137792 
-Loaded from file:/Users/mapfap/workspace/ContactService/lib/derby.jar
+Tue Nov 25 23:02:19 ICT 2014:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.10.1.1 - (1458268): instance a816c00e-0149-e7b0-6c4b-000002647c58 
+on database directory /Users/mapfap/workspace/ImageService/db with class loader sun.misc.Launcher$AppClassLoader@1540e19d 
+Loaded from file:/Users/mapfap/.m2/repository/org/apache/derby/derby/10.10.1.1/derby-10.10.1.1.jar
 java.vendor=Oracle Corporation
-java.runtime.version=1.7.0_45-b18
-user.dir=/Users/mapfap/workspace/ContactService
+java.runtime.version=1.8.0_05-b13
+user.dir=/Users/mapfap/workspace/ImageService
 os.name=Mac OS X
 os.arch=x86_64
 os.version=10.9.5
