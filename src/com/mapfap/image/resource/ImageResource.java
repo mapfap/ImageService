@@ -20,17 +20,18 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.JAXBElement;
 
 import org.eclipse.jetty.http.HttpStatus;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 import com.mapfap.image.entity.Image;
+import com.mapfap.image.entity.Link;
 import com.mapfap.image.persistence.ImagePersistence;
 
 @Singleton
@@ -40,9 +41,8 @@ public class ImageResource {
 	@Context
 	UriInfo uriInfo;
 	private static ImagePersistence persistence;
+	public static final String FILE_STORAGE = "images/";
 	
-	
-
 	public ImageResource() {
 		System.load(new File("/usr/local/share/OpenCV/java/libopencv_java2410.dylib").getAbsolutePath());
 //		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -53,7 +53,21 @@ public class ImageResource {
 //		persistence.clearAll();
 	}
 	
-	public static final String FILE_STORAGE = "images/";
+	@POST
+	@Path("")
+	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
+	public Response storeImage(JAXBElement<Link> link) {
+		// TODO: Download specified link
+		return null;
+	}
+	
+	@POST
+	@Path("")
+	@Consumes({ "image/png", "image/jpg" })
+	public Response storeImage(byte[] bytes) {
+		// TODO: Just read
+		return null;
+	}
 	
 	@POST
 	@Path("")
