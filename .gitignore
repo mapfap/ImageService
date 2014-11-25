@@ -1,7 +1,6 @@
 *.class
 
-bin/
-lib/
+/bin
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
@@ -14,3 +13,4 @@ lib/
 hs_err_pid*
 
 .DS_STORE
+/target
