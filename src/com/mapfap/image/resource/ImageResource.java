@@ -1,8 +1,11 @@
 package com.mapfap.image.resource;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Calendar;
 
 import javax.inject.Singleton;
@@ -22,6 +25,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBElement;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -56,9 +60,19 @@ public class ImageResource {
 	@POST
 	@Path("")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
-	public Response storeImage(JAXBElement<Link> link) {
-		// TODO: Download specified link
-		return null;
+	public Response storeImage(JAXBElement<Link> element) {
+		URL sourceURL = element.getValue().getHref();
+		URI location = null;
+		try {
+			  InputStream is = sourceURL.openStream ();
+			  byte[] bytes = IOUtils.toByteArray(is);
+			  location = storeImage(Calendar.getInstance().getTimeInMillis() + "", bytes);
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+		
+		return Response.created(location).build();
 	}
 	
 	@POST
@@ -76,7 +90,13 @@ public class ImageResource {
 		String fileName = contentDispositionHeader.getFileName().substring(15);
 		fileName = Calendar.getInstance().getTimeInMillis() + "_" + fileName; // prevent name conflicted.
 		
+		URI uri = storeImage(fileName, bytes);
+		return Response.created(uri).header("Access-Control-Allow-Origin", "*").header("Access-Control-Expose-Headers", "Location").build();
+	}
+	
+	private URI storeImage(String fileName, byte[] bytes) {
 		String filePath = FILE_STORAGE + fileName;
+		
 		try {
 			FileOutputStream out = new FileOutputStream(filePath);
 			out.write(bytes);
@@ -92,12 +112,12 @@ public class ImageResource {
 		
 		URI uri = null;
 		try {
-			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "100x100");
-			System.out.println(uri);
+			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "/" + "100x100");
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
-		return Response.created(uri).build();
+		System.out.println(uri.toString());
+		return uri;
 	}
 
 	@GET 

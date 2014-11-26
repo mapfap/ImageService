@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Tue Nov 25 23:21:43 ICT 2014:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.10.1.1 - (1458268): instance a816c00e-0149-e7c2-2e0a-000002673370 
+Wed Nov 26 14:55:18 ICT 2014:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.10.1.1 - (1458268): instance a816c00e-0149-eb18-e955-000001803730 
 on database directory /Users/mapfap/workspace/ImageService/db with class loader sun.misc.Launcher$AppClassLoader@1540e19d 
 Loaded from file:/Users/mapfap/.m2/repository/org/apache/derby/derby/10.10.1.1/derby-10.10.1.1.jar
 java.vendor=Oracle Corporation
