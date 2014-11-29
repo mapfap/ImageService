@@ -20,17 +20,10 @@ RESTful image optimisation web service
 * Apply distortion effect
 
 ## Example Request
+```js
+GET images/e23f2186b?width=100&height=100&grayscale=true&brightness=-2
 ```
-GET /images/001/100x100?grayscale=true&brightness=-10
-```
-
-Get image in 100 x 100, set it to grayscale and brightness = -10
-
-```
-GET /images/002?gaussian=20&duplicate=true
-```
-Get image with default size, apply gaussian effect and save it as new image
--> return location header instead of an image
+Get image in 100 x 100, set it to grayscale and brightness = -2
 
 ## Client
 Very simple web browser client [here](https://github.com/mapfap/ImageService-SimpleClient)
