@@ -13,20 +13,18 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import com.mapfap.image.resource.ImageResource;
 
 /**
+ * Main class of this app. 
+ * Setup the configuration for Jetty deployment.
  * 
- * RESTful web service using Jetty server on the specified port.
- * 
- * @author mapfap - Sarun Wongtanakarn
- * 
+ * @author Sarun Wongtanakarn
  */
-public class JettyMain {
+public class Main {
 
 	static final int PORT = 8080;
 	private static Server server;
 
 	/**
 	 * Start server.
-	 * 
 	 * @param args not used
 	 */
 	public static void main(String[] args) {
@@ -38,7 +36,6 @@ public class JettyMain {
 	 * Create a Jetty server and a context, add Jetty ServletContainer which
 	 * dispatches requests to JAX-RS resource objects, and start the Jetty
 	 * server.
-	 * 
 	 * @param port running port of server.
 	 */
 	public static URI startServer(int port) {

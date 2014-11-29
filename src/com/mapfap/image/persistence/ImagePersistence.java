@@ -11,6 +11,12 @@ import javax.persistence.Query;
 
 import com.mapfap.image.entity.Image;
 
+/**
+ * Persistence for image resource.
+ * save, load, delete image to the database using Eclipselink JPA.
+ * 
+ * @author Sarun Wongtanakarn
+ */
 public class ImagePersistence {
 	
 	private final EntityManager manager;
@@ -23,10 +29,19 @@ public class ImagePersistence {
 		this.manager = manager;
 	}
 	
-	public Image load(String hashedPath) {
-		return manager.find(Image.class, hashedPath);
+	/**
+	 * Load image from database with specified ID.
+	 * @param id ID of image for matching.
+	 * @return image that ID matched.
+	 */
+	public Image load(String id) {
+		return manager.find(Image.class, id);
 	}
 	
+	/**
+	 * List all images from database.
+	 * @return list of images.
+	 */
 	public List<Image> listImages() {
 		Query query = manager.createQuery("SELECT i FROM Image i");
 		@SuppressWarnings("unchecked")
@@ -34,6 +49,11 @@ public class ImagePersistence {
 		return Collections.unmodifiableList(images);
 	}
 
+	/**
+	 * Save image to database.
+	 * @param image image to be saved.
+	 * @return true if image is saved successfully; false otherwise.
+	 */
 	public boolean save(Image image) {
 		if ( image == null ) {
 			throw new IllegalArgumentException("Can't save a null image");
@@ -50,6 +70,11 @@ public class ImagePersistence {
 		}
 	}
 	
+	/**
+	 * Delete image from database with specified ID.
+	 * @param id ID of image for matching.
+	 * @return true if image is deleted successfully; false otherwise.
+	 */
 	public boolean delete(String id) {
 		EntityTransaction tx = manager.getTransaction();
 		Image image = load(id);
@@ -64,6 +89,9 @@ public class ImagePersistence {
 		}
 	}
 	
+	/**
+	 * Delete all images from database.
+	 */
 	public void clearAll() {
 		EntityTransaction tx = manager.getTransaction();
 		try {

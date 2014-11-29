@@ -45,6 +45,12 @@ import com.mapfap.image.entity.atom.Feed;
 import com.mapfap.image.entity.atom.Link;
 import com.mapfap.image.persistence.ImagePersistence;
 
+/**
+ * Resource for JAX-RS service.
+ * Handing all the request to '/images'
+ * 
+ * @author Sarun Wongtanakarn
+ */
 @Singleton
 @Path("/images")
 public class ImageResource {
@@ -54,9 +60,13 @@ public class ImageResource {
 	private static ImagePersistence persistence;
 	public static final String FILE_STORAGE = "images/";
 	
+	/**
+	 * Construct ImageResource with setup necessary stuff.
+	 * TODO: Change the path of OpenCV native library.
+	 */
 	public ImageResource() {
 		System.load(new File("/usr/local/share/OpenCV/java/libopencv_java2410.dylib").getAbsolutePath());
-//		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		
 		EntityManagerFactory factory = Persistence.createEntityManagerFactory("images");
 		EntityManager manager = factory.createEntityManager();
@@ -64,6 +74,11 @@ public class ImageResource {
 //		persistence.clearAll();
 	}
 	
+	/**
+	 * Store image on the server by using address of image on the Internet.
+	 * @param element body of request which parsed with JAXB.
+	 * @return result response. If it's done successfully, return location header too. 
+	 */
 	@POST
 	@Path("")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
@@ -82,6 +97,11 @@ public class ImageResource {
 		return Response.created(location).build();
 	}
 	
+	/**
+	 * Store image on the server by sending the stream directly.
+	 * @param bytes array of byte data of image.
+	 * @return result response. If it's done successfully, return location header too.
+	 */
 	@POST
 	@Path("")
 	@Consumes({ "image/png", "image/jpg" })
@@ -90,6 +110,11 @@ public class ImageResource {
 		return null;
 	}
 	
+	/**
+	 * Store image on the server by sending multi-part web form.
+	 * @param bytes array of byte data.
+	 * @return result response. If it's done successfully, return location header too.
+	 */
 	@POST
 	@Path("")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -106,6 +131,13 @@ public class ImageResource {
 		return Response.created(uri).header("Access-Control-Allow-Origin", "*").header("Access-Control-Expose-Headers", "Location").build();
 	}
 	
+	/**
+	 * Store image on the server.
+	 * This will be called from all storeImage() methods.
+	 * @param fileName name of file.
+	 * @param bytes array of byte data of image.
+	 * @return URI of image that stored.
+	 */
 	private URI storeImage(String fileName, byte[] bytes) {
 		String filePath = FILE_STORAGE + fileName;
 		
@@ -132,6 +164,11 @@ public class ImageResource {
 		return uri;
 	}
 	
+	/**
+	 * List all images stored on the server.
+	 * @return list of all images stored on the server.
+	 * @throws MalformedURLException if URL of any images is false.
+	 */
 	@GET
 	@Path("")
 	@Produces({ MediaType.APPLICATION_ATOM_XML })
@@ -150,6 +187,14 @@ public class ImageResource {
 		return Response.ok(feed).build();
 	}
 
+	/**
+	 * Get image from server.
+	 * @param id ID of image.
+	 * @param width desired width of image.
+	 * @param height desired height of image.
+	 * @param brightness desired brightness of image.
+	 * @return image according to all conditions requested.
+	 */
 	@GET 
 	@Path("{id}")
 	@Produces({ "image/png" })
