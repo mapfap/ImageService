@@ -3,10 +3,13 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import javax.inject.Singleton;
 import javax.persistence.EntityManager;
@@ -18,6 +21,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -29,13 +33,16 @@ import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 import com.mapfap.image.entity.Image;
-import com.mapfap.image.entity.Link;
+import com.mapfap.image.entity.atom.Entry;
+import com.mapfap.image.entity.atom.Feed;
+import com.mapfap.image.entity.atom.Link;
 import com.mapfap.image.persistence.ImagePersistence;
 
 @Singleton
@@ -87,7 +94,12 @@ public class ImageResource {
 	@Path("")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response storeImage(@FormDataParam("file") byte[] bytes, @FormDataParam("file") FormDataContentDisposition contentDispositionHeader) {
-		String fileName = contentDispositionHeader.getFileName().substring(15);
+		
+		String fileName = contentDispositionHeader.getFileName();
+		
+		if (fileName.length() > 15) {
+			fileName = fileName.substring(15);
+		}
 		fileName = Calendar.getInstance().getTimeInMillis() + "_" + fileName; // prevent name conflicted.
 		
 		URI uri = storeImage(fileName, bytes);
@@ -112,22 +124,53 @@ public class ImageResource {
 		
 		URI uri = null;
 		try {
-			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "/" + "100x100");
+			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "/" + "?width=100&height=100");
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
 		System.out.println(uri.toString());
 		return uri;
 	}
+	
+	@GET
+	@Path("")
+	@Produces({ MediaType.APPLICATION_ATOM_XML })
+	public Response listImages() throws MalformedURLException {
+		Feed feed = new Feed();		
+		List<Entry> entries = new ArrayList<Entry>();
+		feed.setEntries(entries);
+		for (Image image : persistence.listImages()) {
+			Entry entry = new Entry();
+			Link link = new Link();
+			entry.setLink(link);
+			link.setHref(new URL(uriInfo.getAbsolutePath() + "/" + image.getId() + "?width=200&height=200"));
+			entries.add(entry);
+		}
+		
+		return Response.ok(feed).build();
+	}
 
 	@GET 
-	@Path("{id}/{width : \\d+}x{height : \\d+}")
+	@Path("{id}")
 	@Produces({ "image/png" })
-	public Response getImage(@PathParam("id") String id, @PathParam("width") int width, @PathParam("height") int height) {
-		if (width * height == 0) {
+	public Response getImage(@PathParam("id") String id, @QueryParam("width") Integer width, @QueryParam("height") Integer height, @QueryParam("brightness") Integer brightness) {
+		
+		if (width == null || height == null) {
 			return Response
 					.status(HttpStatus.BAD_REQUEST_400)
-					.entity("width or height can't be zero")
+					.entity("width and height must be specify")
+					.type(MediaType.TEXT_PLAIN)
+					.build();
+		} else if (width * height == 0) {
+			return Response
+					.status(HttpStatus.BAD_REQUEST_400)
+					.entity("width and height can't be zero")
+					.type(MediaType.TEXT_PLAIN)
+					.build();
+		} else if ( width > 20000 || height > 20000 ) {
+			return Response
+					.status(HttpStatus.BAD_REQUEST_400)
+					.entity("too large width and height")
 					.type(MediaType.TEXT_PLAIN)
 					.build();
 		}
@@ -139,13 +182,37 @@ public class ImageResource {
 		}
 		
 		String fileName = image.getFileName();
-		String newFileName = FILE_STORAGE + "_" +fileName;
+		String newFileName = FILE_STORAGE + "_" + fileName;
+		
+		File file = new File(FILE_STORAGE + fileName);
+		if (! file.isFile()) {
+			return Response
+					.status(HttpStatus.INTERNAL_SERVER_ERROR_500)
+					.entity("file is missing")
+					.type(MediaType.TEXT_PLAIN)
+					.build();
+		}
 		
 		Mat original = Highgui.imread(FILE_STORAGE + fileName);
 		Mat result = new Mat();
-		Size size = new Size(width, height);
+		
+		Size size = new Size(Math.abs(width), Math.abs(height));
 		Imgproc.resize(original, result, size);
-		Highgui.imwrite(newFileName, result);
+		
+		if (width < 0) {
+			Core.flip(result, result, 1);
+		}
+		
+		if (height < 0) {
+			Core.flip(result, result, 0);
+		}
+		
+		
+		if (brightness != null) {			
+			result.convertTo(result, -1, brightness, 10);
+		}
+		
+	    Highgui.imwrite(newFileName, result);
 		
 		return Response.ok(new File(newFileName)).build();
 	}

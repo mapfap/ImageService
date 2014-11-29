@@ -1,4 +1,4 @@
-package com.mapfap.image.entity;
+package com.mapfap.image.entity.atom;
 
 import java.net.URL;
 

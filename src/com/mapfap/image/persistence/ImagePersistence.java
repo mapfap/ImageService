@@ -1,5 +1,7 @@
 package com.mapfap.image.persistence;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javax.persistence.EntityExistsException;
@@ -23,6 +25,13 @@ public class ImagePersistence {
 	
 	public Image load(String hashedPath) {
 		return manager.find(Image.class, hashedPath);
+	}
+	
+	public List<Image> listImages() {
+		Query query = manager.createQuery("SELECT i FROM Image i");
+		@SuppressWarnings("unchecked")
+		List<Image> images = query.getResultList();
+		return Collections.unmodifiableList(images);
 	}
 
 	public boolean save(Image image) {
