@@ -157,7 +157,7 @@ public class ImageResource {
 		
 		URI uri = null;
 		try {
-			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "/" + "?width=500&height=500");
+			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "/" + "?width=300&height=300");
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
@@ -181,11 +181,11 @@ public class ImageResource {
 			Entry entry = new Entry();
 			Link link = new Link();
 			entry.setLink(link);
-			link.setHref(new URL(uriInfo.getAbsolutePath() + "/" + image.getId() + "?width=500&height=500"));
+			link.setHref(new URL(uriInfo.getAbsolutePath() + "/" + image.getId() + "?width=300&height=300"));
 			entries.add(entry);
 		}
 		
-		return Response.ok(feed).build();
+		return Response.ok(feed).header("Access-Control-Allow-Origin", "*").build();
 	}
 
 	/**
