@@ -157,7 +157,7 @@ public class ImageResource {
 		
 		URI uri = null;
 		try {
-			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "/" + "?width=100&height=100");
+			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "/" + "?width=500&height=500");
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
@@ -181,7 +181,7 @@ public class ImageResource {
 			Entry entry = new Entry();
 			Link link = new Link();
 			entry.setLink(link);
-			link.setHref(new URL(uriInfo.getAbsolutePath() + "/" + image.getId() + "?width=200&height=200"));
+			link.setHref(new URL(uriInfo.getAbsolutePath() + "/" + image.getId() + "?width=500&height=500"));
 			entries.add(entry);
 		}
 		
@@ -272,6 +272,6 @@ public class ImageResource {
 		
 	    Highgui.imwrite(newFileName, result);
 		
-		return Response.ok(new File(newFileName)).build();
+		return Response.ok(new File(newFileName)).header("Access-Control-Allow-Origin", "*").build();
 	}
 }

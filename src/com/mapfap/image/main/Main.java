@@ -46,7 +46,7 @@ public class Main {
 			resourceConfig.register(MultiPartFeature.class);
 			ServletContainer servletContainer = new ServletContainer(resourceConfig);
 			ServletHolder sh = new ServletHolder(servletContainer);                
-			Server server = new Server(port);		
+			server = new Server(port);		
 			ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 	        context.setContextPath("/");
 	        context.addServlet(sh, "/*");
