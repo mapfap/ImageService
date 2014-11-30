@@ -62,11 +62,12 @@ public class ImageResource {
 	
 	/**
 	 * Construct ImageResource with setup necessary stuff.
-	 * TODO: Change the path of OpenCV native library.
 	 */
 	public ImageResource() {
+		
+		// TODO: Change the path of OpenCV native library.
 		System.load(new File("/usr/local/share/OpenCV/java/libopencv_java2410.dylib").getAbsolutePath());
-		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+//		System.loadLibrary(Core.NATIVE_LIBRARY_NAME); // this does not work.
 		
 		EntityManagerFactory factory = Persistence.createEntityManagerFactory("images");
 		EntityManager manager = factory.createEntityManager();
@@ -198,7 +199,14 @@ public class ImageResource {
 	@GET 
 	@Path("{id}")
 	@Produces({ "image/png" })
-	public Response getImage(@PathParam("id") String id, @QueryParam("width") Integer width, @QueryParam("height") Integer height, @QueryParam("brightness") Integer brightness) {
+	public Response getImage(
+			@PathParam("id") String id,
+			@QueryParam("width") Integer width,
+			@QueryParam("height") Integer height,
+			@QueryParam("brightness") Double brightness,
+			@QueryParam("gaussian") boolean gaussian,
+			@QueryParam("grayscale") boolean grayScale
+			) {
 		
 		if (width == null || height == null) {
 			return Response
@@ -238,12 +246,17 @@ public class ImageResource {
 					.build();
 		}
 		
-		Mat original = Highgui.imread(FILE_STORAGE + fileName);
+		int colorMode = (grayScale) ? Highgui.CV_LOAD_IMAGE_GRAYSCALE : Highgui.CV_LOAD_IMAGE_COLOR;
+		Mat original = Highgui.imread(FILE_STORAGE + fileName, colorMode);
+		
 		Mat result = new Mat();
 		
 		Size size = new Size(Math.abs(width), Math.abs(height));
 		Imgproc.resize(original, result, size);
 		
+		if (gaussian) {
+			Imgproc.GaussianBlur(result, result ,new Size(45, 45), 0);
+		}
 		if (width < 0) {
 			Core.flip(result, result, 1);
 		}
@@ -254,7 +267,7 @@ public class ImageResource {
 		
 		
 		if (brightness != null) {			
-			result.convertTo(result, -1, brightness, 10);
+			result.convertTo(result, -1, brightness, 0);
 		}
 		
 	    Highgui.imwrite(newFileName, result);
