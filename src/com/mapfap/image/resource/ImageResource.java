@@ -33,17 +33,14 @@ import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.Size;
-import org.opencv.highgui.Highgui;
-import org.opencv.imgproc.Imgproc;
 
 import com.mapfap.image.entity.Image;
 import com.mapfap.image.entity.atom.Entry;
 import com.mapfap.image.entity.atom.Feed;
 import com.mapfap.image.entity.atom.Link;
 import com.mapfap.image.persistence.ImagePersistence;
+import com.mapfap.image.processing.ImageProcessor;
+import com.mapfap.image.processing.ProcessInstruction;
 
 /**
  * Resource for JAX-RS service.
@@ -58,6 +55,7 @@ public class ImageResource {
 	@Context
 	UriInfo uriInfo;
 	private static ImagePersistence persistence;
+	private static ImageProcessor processor;
 	public static final String FILE_STORAGE = "images/";
 	
 	/**
@@ -65,12 +63,9 @@ public class ImageResource {
 	 */
 	public ImageResource() {
 		
-		// TODO: Change the path of OpenCV native library.
-		System.load(new File("/usr/local/share/OpenCV/java/libopencv_java2410.dylib").getAbsolutePath());
-//		System.loadLibrary(Core.NATIVE_LIBRARY_NAME); // this does not work.
-		
 		EntityManagerFactory factory = Persistence.createEntityManagerFactory("images");
 		EntityManager manager = factory.createEntityManager();
+		processor = new ImageProcessor();
 		persistence = new ImagePersistence(manager);
 //		persistence.clearAll();
 	}
@@ -205,27 +200,15 @@ public class ImageResource {
 			@QueryParam("height") Integer height,
 			@QueryParam("brightness") Double brightness,
 			@QueryParam("gaussian") boolean gaussian,
-			@QueryParam("grayscale") boolean grayScale
+			@QueryParam("grayscale") boolean grayscale
 			) {
 		
 		if (width == null || height == null) {
-			return Response
-					.status(HttpStatus.BAD_REQUEST_400)
-					.entity("width and height must be specify")
-					.type(MediaType.TEXT_PLAIN)
-					.build();
+			return error(HttpStatus.BAD_REQUEST_400, "width and height must be specify");
 		} else if (width * height == 0) {
-			return Response
-					.status(HttpStatus.BAD_REQUEST_400)
-					.entity("width and height can't be zero")
-					.type(MediaType.TEXT_PLAIN)
-					.build();
-		} else if ( width > 20000 || height > 20000 ) {
-			return Response
-					.status(HttpStatus.BAD_REQUEST_400)
-					.entity("too large width and height")
-					.type(MediaType.TEXT_PLAIN)
-					.build();
+			return error(HttpStatus.BAD_REQUEST_400, "width and height can't be zero");
+		} else if (width > 20000 || height > 20000) {
+			return error(HttpStatus.BAD_REQUEST_400, "too large width and height");
 		}
 		
 		Image image = persistence.load(id);
@@ -235,43 +218,24 @@ public class ImageResource {
 		}
 		
 		String fileName = image.getFileName();
-		String newFileName = FILE_STORAGE + "_" + fileName;
 		
 		File file = new File(FILE_STORAGE + fileName);
 		if (! file.isFile()) {
-			return Response
-					.status(HttpStatus.INTERNAL_SERVER_ERROR_500)
-					.entity("file is missing")
-					.type(MediaType.TEXT_PLAIN)
-					.build();
+			return error(HttpStatus.INTERNAL_SERVER_ERROR_500, "file is missing");
 		}
 		
-		int colorMode = (grayScale) ? Highgui.CV_LOAD_IMAGE_GRAYSCALE : Highgui.CV_LOAD_IMAGE_COLOR;
-		Mat original = Highgui.imread(FILE_STORAGE + fileName, colorMode);
-		
-		Mat result = new Mat();
-		
-		Size size = new Size(Math.abs(width), Math.abs(height));
-		Imgproc.resize(original, result, size);
-		
-		if (gaussian) {
-			Imgproc.GaussianBlur(result, result ,new Size(45, 45), 0);
-		}
-		if (width < 0) {
-			Core.flip(result, result, 1);
-		}
-		
-		if (height < 0) {
-			Core.flip(result, result, 0);
-		}
-		
-		
-		if (brightness != null) {			
-			result.convertTo(result, -1, brightness, 0);
-		}
-		
-	    Highgui.imwrite(newFileName, result);
+		String newFileName = processor.process(fileName, new ProcessInstruction(width, height, brightness, gaussian, grayscale));
 		
 		return Response.ok(new File(newFileName)).header("Access-Control-Allow-Origin", "*").build();
+	}
+
+	/**
+	 * Return the error response with described text.
+	 * @param status HTTP status code for error.
+	 * @param text text to be sent to user.
+	 * @return error response with described text.
+	 */
+	private Response error(int status, String text) {
+		return Response.status(status).entity(text).type(MediaType.TEXT_PLAIN).build();
 	}
 }
