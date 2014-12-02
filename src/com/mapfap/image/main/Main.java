@@ -2,12 +2,18 @@ package com.mapfap.image.main;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
 
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.DoSFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import com.mapfap.image.resource.ImageResource;
@@ -53,19 +59,28 @@ public class Main {
 			ResourceConfig resourceConfig = new ResourceConfig();		
 			resourceConfig.packages(ImageResource.class.getPackage().getName());
 			resourceConfig.register(MultiPartFeature.class);
+			resourceConfig.register(RolesAllowedDynamicFeature.class);
+			
 			ServletContainer servletContainer = new ServletContainer(resourceConfig);
 			ServletHolder sh = new ServletHolder(servletContainer);                
 			server = new Server(port);		
 			ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 	        context.setContextPath("/");
 	        context.addServlet(sh, "/*");
+	        
+	        FilterHolder filterHolder = new FilterHolder( DoSFilter.class );
+			filterHolder.setInitParameter("maxRequestsPerSec", "1");
+			filterHolder.setInitParameter("delayMs", "-1");
+			
+			final EnumSet<DispatcherType> REQUEST_SCOPE = EnumSet.of(DispatcherType.REQUEST);
+			context.addFilter( filterHolder, "/*", REQUEST_SCOPE );
+	        
 			server.setHandler(context);
 
 			System.out.println("Starting Jetty server on port " + port);
 			server.start();
-//
-//			// returning server.getURI() is
-//			// somehow cause an error with KUWIN network.
+
+			// This will be used by UnitTest
 			return new URI("http://127.0.0.1:" + port + "/");
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -93,7 +108,6 @@ public class Main {
 	 */
 	public static void stopServer() {
 		try {
-			// MemDaoFactory.getInstance().shutdown();
 			server.stop();
 		} catch (Exception e) {
 			e.printStackTrace();

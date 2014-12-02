@@ -58,11 +58,13 @@ public class ImageResource {
 	private static ImageProcessor processor;
 	public static final String FILE_STORAGE = "images/";
 	
+	public static final String ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
+	public static final String EXPOSE_HEADER = "Access-Control-Expose-Headers";
+	
 	/**
 	 * Construct ImageResource with setup necessary stuff.
 	 */
 	public ImageResource() {
-		
 		EntityManagerFactory factory = Persistence.createEntityManagerFactory("images");
 		EntityManager manager = factory.createEntityManager();
 		processor = new ImageProcessor();
@@ -102,8 +104,8 @@ public class ImageResource {
 	@Path("")
 	@Consumes({ "image/png", "image/jpg" })
 	public Response storeImage(byte[] bytes) {
-		// TODO: Just read
-		return null;
+		URI uri = storeImage(Calendar.getInstance().getTimeInMillis() + "", bytes);
+		return Response.created(uri).header(ALLOW_ORIGIN_HEADER, "*").header(EXPOSE_HEADER, "Location").build();
 	}
 	
 	/**
@@ -115,7 +117,6 @@ public class ImageResource {
 	@Path("")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	public Response storeImage(@FormDataParam("file") byte[] bytes, @FormDataParam("file") FormDataContentDisposition contentDispositionHeader) {
-		
 		String fileName = contentDispositionHeader.getFileName();
 		
 		if (fileName.length() > 15) {
@@ -124,7 +125,7 @@ public class ImageResource {
 		fileName = Calendar.getInstance().getTimeInMillis() + "_" + fileName; // prevent name conflicted.
 		
 		URI uri = storeImage(fileName, bytes);
-		return Response.created(uri).header("Access-Control-Allow-Origin", "*").header("Access-Control-Expose-Headers", "Location").build();
+		return Response.created(uri).header(ALLOW_ORIGIN_HEADER, "*").header(EXPOSE_HEADER, "Location").build();
 	}
 	
 	/**
@@ -180,7 +181,7 @@ public class ImageResource {
 			entries.add(entry);
 		}
 		
-		return Response.ok(feed).header("Access-Control-Allow-Origin", "*").build();
+		return Response.ok(feed).header(ALLOW_ORIGIN_HEADER, "*").build();
 	}
 
 	/**
@@ -203,12 +204,9 @@ public class ImageResource {
 			@QueryParam("grayscale") boolean grayscale
 			) {
 		
-		if (width == null || height == null) {
-			return error(HttpStatus.BAD_REQUEST_400, "width and height must be specify");
-		} else if (width * height == 0) {
-			return error(HttpStatus.BAD_REQUEST_400, "width and height can't be zero");
-		} else if (width > 20000 || height > 20000) {
-			return error(HttpStatus.BAD_REQUEST_400, "too large width and height");
+		Response r = validateWidthAndHeight(width, height);
+		if (r != null) {
+			return r;
 		}
 		
 		Image image = persistence.load(id);
@@ -226,7 +224,24 @@ public class ImageResource {
 		
 		String newFileName = processor.process(fileName, new ProcessInstruction(width, height, brightness, gaussian, grayscale));
 		
-		return Response.ok(new File(newFileName)).header("Access-Control-Allow-Origin", "*").build();
+		return Response.ok(new File(newFileName)).header(ALLOW_ORIGIN_HEADER, "*").build();
+	}
+
+	/**
+	 * Validate width and height of Request.
+	 * @param width width of image.
+	 * @param height height of image.
+	 * @return Response if request is invalid; otherwise return null;
+	 */
+	private Response validateWidthAndHeight(Integer width, Integer height) {
+		if (width == null || height == null) {
+			return error(HttpStatus.BAD_REQUEST_400, "width and height must be specify");
+		} else if (width * height == 0) {
+			return error(HttpStatus.BAD_REQUEST_400, "width and height can't be zero");
+		} else if (width > 20000 || height > 20000) {
+			return error(HttpStatus.BAD_REQUEST_400, "too large width and height");
+		}
+		return null;
 	}
 
 	/**
