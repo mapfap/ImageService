@@ -20,15 +20,24 @@ import com.mapfap.image.resource.ImageResource;
  */
 public class Main {
 
+	// TODO: Change this !!!!!!!!!!
+	public static String OPENCV_PATH = "/usr/local/share/OpenCV/java/libopencv_java2410.dylib";
+	
+	
 	static final int PORT = 8080;
 	private static Server server;
 
 	/**
 	 * Start server.
-	 * @param args not used
+	 * @param args specify openCV native library path.
 	 */
 	public static void main(String[] args) {
+		if (args.length > 0) {
+			OPENCV_PATH = args[0];
+		}
+		
 		startServer(PORT);
+		System.out.println("[Debug] OpenCV path set to: " + OPENCV_PATH);
 		waitForExit();
 	}
 

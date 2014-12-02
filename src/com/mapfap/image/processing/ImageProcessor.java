@@ -8,6 +8,7 @@ import org.opencv.core.Size;
 import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
+import com.mapfap.image.main.Main;
 import com.mapfap.image.resource.ImageResource;
 
 /**
@@ -22,9 +23,8 @@ public class ImageProcessor {
 	 * NOTE: This requires native dynamic library such as .dll for Windows, .dylib for OSX
 	 */
 	public ImageProcessor() {
-		// TODO: Change the path of OpenCV native library.
-		System.load(new File("/usr/local/share/OpenCV/java/libopencv_java2410.dylib").getAbsolutePath());
-		// System.loadLibrary(Core.NATIVE_LIBRARY_NAME); // this does not work.
+		System.load(new File(Main.OPENCV_PATH).getAbsolutePath());
+//		 System.loadLibrary(Core.NATIVE_LIBRARY_NAME); // this does not work.
 	}
 	
 	/**
