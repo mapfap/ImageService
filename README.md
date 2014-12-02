@@ -1,5 +1,13 @@
 # Image Service
-RESTful image optimisation web service
+RESTful image manipulation service
+
+## Read First !!
+This application requires [OpenCV](http://opencv.org) compiled on your machine.<br>
+I have a cookbook for Linux [HERE](https://github.com/mapfap/ImageService/wiki/OpenCV-Cookbook).<br>
+For Windows please see the [Official Website](http://opencv.org)<br>
+NOTE:
+* You have to change path to your native library in Main class.
+* Please use OpenCV 2.4.10. If you have different version, you have to change lib file in pom.xml
 
 ## What's it for?
 * Mobile App: Smartphones don't have enough memory to quickly process images, and it drains the battery.  Image Editor Service offloads this work to a remote service.
