@@ -28,7 +28,10 @@ import com.mapfap.image.resource.ImageResource;
 public class Main {
 
 	// TODO: Change this !!!!!!!!!!
-	public static String OPENCV_PATH = "/usr/local/share/OpenCV/java/libopencv_java2410.dylib";
+	public static String OPENCV_PATH_MAC = "/usr/local/share/OpenCV/java/libopencv_java2410.dylib"; // For Mac.
+	public static String OPENCV_PATH_LINUX = "/usr/local/lib/libopencv_core.so"; // For Linux.
+	
+	public static String OPENCV_PATH;
 	
 	
 	static final int PORT = 8080;
@@ -39,6 +42,9 @@ public class Main {
 	 * @param args specify openCV native library path.
 	 */
 	public static void main(String[] args) {
+		
+		checkOS();
+		
 		if (args.length > 0) {
 			OPENCV_PATH = args[0];
 		}
@@ -46,6 +52,18 @@ public class Main {
 		startServer(PORT);
 		System.out.println("[Debug] OpenCV path set to: " + OPENCV_PATH);
 		waitForExit();
+	}
+
+	/**
+	 * 
+	 */
+	private static void checkOS() {
+		String os = System.getProperty("os.name");
+		if (os.contains("Mac")) {
+			OPENCV_PATH = OPENCV_PATH_MAC;
+		} else {			
+			OPENCV_PATH = OPENCV_PATH_LINUX;
+		}
 	}
 
 	/**
