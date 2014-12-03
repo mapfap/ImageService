@@ -13,6 +13,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.DoSFilter;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 import org.glassfish.jersey.servlet.ServletContainer;
 
@@ -62,18 +63,21 @@ public class Main {
 			resourceConfig.register(RolesAllowedDynamicFeature.class);
 			
 			ServletContainer servletContainer = new ServletContainer(resourceConfig);
-			ServletHolder sh = new ServletHolder(servletContainer);                
+			ServletHolder holder = new ServletHolder(servletContainer);        
+			holder.setInitParameter(ServerProperties.JSON_PROCESSING_FEATURE_DISABLE, "false");
+			
 			server = new Server(port);		
 			ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
 	        context.setContextPath("/");
-	        context.addServlet(sh, "/*");
+	        context.addServlet(holder, "/*");
+	        
 	        
 	        FilterHolder filterHolder = new FilterHolder( DoSFilter.class );
 			filterHolder.setInitParameter("maxRequestsPerSec", "1");
 			filterHolder.setInitParameter("delayMs", "-1");
 			
 			final EnumSet<DispatcherType> REQUEST_SCOPE = EnumSet.of(DispatcherType.REQUEST);
-			context.addFilter( filterHolder, "/*", REQUEST_SCOPE );
+			context.addFilter(filterHolder, "/*", REQUEST_SCOPE);
 	        
 			server.setHandler(context);
 

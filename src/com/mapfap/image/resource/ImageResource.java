@@ -81,18 +81,19 @@ public class ImageResource {
 	@Path("")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response storeImage(JAXBElement<Link> element) {
+		System.out.println("dfv");
 		URL sourceURL = element.getValue().getHref();
 		URI location = null;
 		try {
 			  InputStream is = sourceURL.openStream ();
 			  byte[] bytes = IOUtils.toByteArray(is);
-			  location = storeImage(Calendar.getInstance().getTimeInMillis() + "", bytes);
+			  location = storeImage(Calendar.getInstance().getTimeInMillis() + ".png", bytes);
 			}
 			catch (IOException e) {
 				e.printStackTrace();
 			}
 		
-		return Response.created(location).build();
+		return Response.created(location).header("Access-Control-Allow-Headers", "Content-Type").header(ALLOW_ORIGIN_HEADER, "*").header(EXPOSE_HEADER, "Location").build();
 	}
 	
 	/**
@@ -153,7 +154,7 @@ public class ImageResource {
 		
 		URI uri = null;
 		try {
-			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "/" + "?width=300&height=300");
+			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "?width=300&height=300");
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
