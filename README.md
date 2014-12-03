@@ -1,5 +1,7 @@
 # Image Service
 RESTful image manipulation service
+
+# Demos
 * [Client](http://mapfap.tk:8081/)
 * [Service](http://mapfap.tk:8080/images/)
 
