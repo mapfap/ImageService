@@ -34,19 +34,19 @@ public class Main {
 	public static String OPENCV_PATH;
 	
 	
-	static final int PORT = 8080;
+	static int PORT = 8080;
 	private static Server server;
 
 	/**
 	 * Start server.
-	 * @param args specify openCV native library path.
+	 * @param args first argument is port to run the server.
 	 */
 	public static void main(String[] args) {
 		
 		checkOS();
 		
 		if (args.length > 0) {
-			OPENCV_PATH = args[0];
+			PORT = Integer.parseInt(args[0]);
 		}
 		
 		startServer(PORT);
