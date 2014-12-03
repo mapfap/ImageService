@@ -1,5 +1,7 @@
 # Image Service
 RESTful image manipulation service
+* [Client](http://mapfap.tk:8081/)
+* [Service](http://mapfap.tk:8080/images/)
 
 ## Read First !!
 This application requires [OpenCV](http://opencv.org) compiled on your machine.<br>
