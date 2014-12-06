@@ -1,6 +1,10 @@
 # Image Service
 RESTful image manipulation service
 
+# Demos
+* [Client](http://mapfap.tk:8081/)
+* [Service](http://mapfap.tk:8080/images/)
+
 ## Read First !!
 This application requires [OpenCV](http://opencv.org) compiled on your machine.<br>
 I have a cookbook for Linux [HERE](https://github.com/mapfap/ImageService/wiki/OpenCV-Cookbook).<br>
