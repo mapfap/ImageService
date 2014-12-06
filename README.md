@@ -46,7 +46,7 @@ Very simple web browser client [here](https://github.com/mapfap/ImageService-Sim
 * EclipseLink JPA
 
 ## Image Processing Library
-You can choose to use any library (Abstract Factory)
+You can choose to use any libraries (Abstract Factory)
 * [OpenCV 2.4.10](http://opencv.org), required native library (need to compile its source). This one fast and robust but hard to dustribute.
 * [imgscalr](https://github.com/thebuzzmedia/imgscalr), PURE JAVA! This one already integrated in maven. a bit slower and less features but it's easy to distribute.
 
