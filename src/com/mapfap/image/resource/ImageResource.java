@@ -70,13 +70,32 @@ public class ImageResource {
 		processor = imageProcessorFactory.getImageProcessor();
 //		persistence.clearAll();
 		
-		
 		EntityManagerFactory factory = Persistence.createEntityManagerFactory("images");
 		EntityManager manager = factory.createEntityManager();
 		persistence = new ImagePersistence(manager);
-		
+	
+		createFileStorage();
 	}
 	
+	private void createFileStorage() {
+		File theDir = new File(FILE_STORAGE);
+
+		  if (!theDir.exists()) {
+		    System.out.println("creating directory: " + FILE_STORAGE);
+		    boolean result = false;
+
+		    try {
+		        theDir.mkdir();
+		        result = true;
+		     } catch (SecurityException e){
+		        e.printStackTrace();
+		     }        
+		     if (result) {    
+		       System.out.println("DIR created");  
+		     }
+		  }
+	}
+
 	/**
 	 * Store image on the server by using address of image on the Internet.
 	 * @param element body of request which parsed with JAXB.
