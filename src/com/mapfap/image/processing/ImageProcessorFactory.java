@@ -33,8 +33,8 @@ public abstract class ImageProcessorFactory {
 			}
 			
 			// No properties assigned...
-			System.out.println("[DEBUG] using ImageJ library");
-			factory = new com.mapfap.image.processing.imagej.ImageJProcessorFactory();
+			System.out.println("[DEBUG] using imgscalr library");
+			factory = new com.mapfap.image.processing.imagescalr.ImageScalrProcessorFactory();
 			
 //			factory = new com.mapfap.image.processing.opencv.OpenCVProcessorFactory();
 		}

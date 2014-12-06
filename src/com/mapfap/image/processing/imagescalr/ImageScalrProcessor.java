@@ -1,4 +1,4 @@
-package com.mapfap.image.processing.imagej;
+package com.mapfap.image.processing.imagescalr;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -13,14 +13,14 @@ import com.mapfap.image.processing.ProcessInstruction;
 import com.mapfap.image.resource.ImageResource;
 
 /**
- * ImageProcessor using ImageJ library.
+ * ImageProcessor using imgscalr library.
  * Pure Java, no dependencies on native library.
  * Some of features such as Gaussian Blur will be disabled. 
  * 
  * @author Sarun Wongtanakarn
  *
  */
-public class ImageJProcessor implements ImageProcessor {
+public class ImageScalrProcessor implements ImageProcessor {
 
 	/**
 	 * @see ImageProcessor#process(String, ProcessInstruction)
@@ -32,7 +32,12 @@ public class ImageJProcessor implements ImageProcessor {
 			int width = Math.abs(instruction.getWidth());
 			int height = Math.abs(instruction.getHeight());
 			
-			BufferedImage result = Scalr.resize(original, Scalr.Method.SPEED, Scalr.Mode.FIT_EXACT, width, height, Scalr.OP_ANTIALIAS);
+			BufferedImage result;
+			if (instruction.isGrayscale()) {
+				result = Scalr.resize(original, Scalr.Method.SPEED, Scalr.Mode.FIT_EXACT, width, height, Scalr.OP_GRAYSCALE);
+			} else {				
+				result = Scalr.resize(original, Scalr.Method.SPEED, Scalr.Mode.FIT_EXACT, width, height);
+			}
 			
 			String outputFileName = ImageResource.FILE_STORAGE + "_" + fileName;
 			File outputFile = new File(outputFileName);
