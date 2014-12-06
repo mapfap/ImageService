@@ -2,16 +2,8 @@
 RESTful image manipulation service
 
 # Demos
-* [Client](http://mapfap.tk:8081/)
-* [Service](http://mapfap.tk:8080/images/)
-
-## Read First !!
-This application requires [OpenCV](http://opencv.org) compiled on your machine.<br>
-I have a cookbook for Linux [HERE](https://github.com/mapfap/ImageService/wiki/OpenCV-Cookbook).<br>
-For Windows please see the [Official Website](http://opencv.org)<br>
-NOTE:
-* You have to change path to your native library in Main class.
-* Please use OpenCV 2.4.10. If you have different version, you have to change lib file in pom.xml
+* Cient [mapfap.com/play](http://mapfap.com/play)
+* Service [mapfap.tk/images](http://mapfap.tk/images/)
 
 ## What's it for?
 * Mobile App: Smartphones don't have enough memory to quickly process images, and it drains the battery.  Image Editor Service offloads this work to a remote service.
@@ -53,8 +45,10 @@ Very simple web browser client [here](https://github.com/mapfap/ImageService-Sim
 * Apache Derby
 * EclipseLink JPA
 
-Note: use maven to install all packages except
-* [OpenCV 2.4.10](http://opencv.org), required native library (need to compile its source)
+## Image Processing Library
+You can choose to use any library (Abstract Factory)
+* [OpenCV 2.4.10](http://opencv.org), required native library (need to compile its source). This one fast and robust but hard to dustribute.
+* [imgscalr](https://github.com/thebuzzmedia/imgscalr), PURE JAVA! This one already integrated in maven. a bit slower and less features but it's easy to distribute.
 
 ## Security Consideration
 * What if user send very large file
