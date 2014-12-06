@@ -40,6 +40,7 @@ import com.mapfap.image.entity.atom.Feed;
 import com.mapfap.image.entity.atom.Link;
 import com.mapfap.image.persistence.ImagePersistence;
 import com.mapfap.image.processing.ImageProcessor;
+import com.mapfap.image.processing.ImageProcessorFactory;
 import com.mapfap.image.processing.ProcessInstruction;
 
 /**
@@ -65,11 +66,15 @@ public class ImageResource {
 	 * Construct ImageResource with setup necessary stuff.
 	 */
 	public ImageResource() {
+		ImageProcessorFactory imageProcessorFactory = ImageProcessorFactory.getInstance();
+		processor = imageProcessorFactory.getImageProcessor();
+//		persistence.clearAll();
+		
+		
 		EntityManagerFactory factory = Persistence.createEntityManagerFactory("images");
 		EntityManager manager = factory.createEntityManager();
-		processor = new ImageProcessor();
 		persistence = new ImagePersistence(manager);
-//		persistence.clearAll();
+		
 	}
 	
 	/**

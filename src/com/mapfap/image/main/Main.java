@@ -26,13 +26,6 @@ import com.mapfap.image.resource.ImageResource;
  * @author Sarun Wongtanakarn
  */
 public class Main {
-
-	// TODO: Change this !!!!!!!!!!
-	public static String OPENCV_PATH_MAC = "/usr/local/share/OpenCV/java/libopencv_java2410.dylib"; // For Mac.
-	public static String OPENCV_PATH_LINUX = "/usr/local/lib/libopencv_core.so"; // For Linux.
-	
-	public static String OPENCV_PATH;
-	
 	
 	static int PORT = 8080;
 	private static Server server;
@@ -42,28 +35,11 @@ public class Main {
 	 * @param args first argument is port to run the server.
 	 */
 	public static void main(String[] args) {
-		
-		checkOS();
-		
 		if (args.length > 0) {
 			PORT = Integer.parseInt(args[0]);
 		}
-		
 		startServer(PORT);
-		System.out.println("[Debug] OpenCV path set to: " + OPENCV_PATH);
 		waitForExit();
-	}
-
-	/**
-	 * 
-	 */
-	private static void checkOS() {
-		String os = System.getProperty("os.name");
-		if (os.contains("Mac")) {
-			OPENCV_PATH = OPENCV_PATH_MAC;
-		} else {			
-			OPENCV_PATH = OPENCV_PATH_LINUX;
-		}
 	}
 
 	/**
@@ -95,8 +71,9 @@ public class Main {
 			filterHolder.setInitParameter("delayMs", "-1");
 			
 			final EnumSet<DispatcherType> REQUEST_SCOPE = EnumSet.of(DispatcherType.REQUEST);
-			context.addFilter(filterHolder, "/*", REQUEST_SCOPE);
-	        
+			context.addFilter(filterHolder, "/*", REQUEST_SCOPE);		
+			context.addFilter(CORSResponseFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+
 			server.setHandler(context);
 
 			System.out.println("Starting Jetty server on port " + port);

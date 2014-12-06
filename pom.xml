@@ -4,10 +4,6 @@
 	<groupId>com.mapfap.ws</groupId>
 	<artifactId>image-service</artifactId>
 	<version>0.0.1</version>
-	<properties>
-		<opencv.version>2410</opencv.version>
-		<opencv.jar.path>${project.basedir}/lib/opencv-2410.jar</opencv.jar.path>
-	</properties>
 	>
 	<dependencies>
 
@@ -78,10 +74,19 @@
 		<dependency>
 			<groupId>org.opencv</groupId>
 			<artifactId>opencv</artifactId>
-			<version>${opencv.version}</version>
+			<version>2410</version>
 			<scope>system</scope>
-			<systemPath>${opencv.jar.path}</systemPath>
+			<systemPath>${project.basedir}/lib/opencv-2410.jar</systemPath>
 		</dependency>
+
+		<dependency>
+			<groupId>org.imgscalr</groupId>
+			<artifactId>imgscalr-lib</artifactId>
+			<version>4.2</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+
 	</dependencies>
 
 </project>
