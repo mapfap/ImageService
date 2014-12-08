@@ -10,7 +10,7 @@ import org.imgscalr.Scalr;
 
 import com.mapfap.image.processing.ImageProcessor;
 import com.mapfap.image.processing.ProcessInstruction;
-import com.mapfap.image.resource.ImageResource;
+import com.mapfap.image.util.FileManager;
 
 /**
  * ImageProcessor using imgscalr library.
@@ -22,13 +22,19 @@ import com.mapfap.image.resource.ImageResource;
  */
 public class ImageScalrProcessor implements ImageProcessor {
 
+	private FileManager fileManager;
+	
+	public ImageScalrProcessor(FileManager fileManager) {
+		this.fileManager = fileManager;
+	}
+
 	/**
 	 * @see ImageProcessor#process(String, ProcessInstruction)
 	 */
 	@Override
 	public String process(String fileName, ProcessInstruction instruction) {
 		try {
-			BufferedImage original = ImageIO.read(new File(ImageResource.FILE_STORAGE + fileName));
+			BufferedImage original = ImageIO.read(fileManager.getFile(fileName));
 			int width = Math.abs(instruction.getWidth());
 			int height = Math.abs(instruction.getHeight());
 			
@@ -39,7 +45,7 @@ public class ImageScalrProcessor implements ImageProcessor {
 				result = Scalr.resize(original, Scalr.Method.SPEED, Scalr.Mode.FIT_EXACT, width, height);
 			}
 			
-			String outputFileName = ImageResource.FILE_STORAGE + "_" + fileName;
+			String outputFileName = fileManager.getFilePath("_" + fileName);
 			File outputFile = new File(outputFileName);
 		    ImageIO.write(result, "png", outputFile);
 		    return outputFileName;

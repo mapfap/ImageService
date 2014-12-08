@@ -2,6 +2,7 @@ package com.mapfap.image.processing.imagescalr;
 
 import com.mapfap.image.processing.ImageProcessor;
 import com.mapfap.image.processing.ImageProcessorFactory;
+import com.mapfap.image.util.FileManager;
 
 /**
  * Factory for ImageProcessor using imgscalr library.
@@ -18,7 +19,8 @@ public class ImageScalrProcessorFactory extends ImageProcessorFactory {
 	 */
 	@Override
 	public ImageProcessor getImageProcessor() {
-		return new ImageScalrProcessor();
+		FileManager fileManager = FileManager.getInstance();
+		return new ImageScalrProcessor(fileManager);
 	}
 
 }

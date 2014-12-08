@@ -8,7 +8,7 @@ import org.opencv.imgproc.Imgproc;
 
 import com.mapfap.image.processing.ImageProcessor;
 import com.mapfap.image.processing.ProcessInstruction;
-import com.mapfap.image.resource.ImageResource;
+import com.mapfap.image.util.FileManager;
 
 /**
  * ImageProcessor using OpenCV library.
@@ -19,6 +19,12 @@ import com.mapfap.image.resource.ImageResource;
  *
  */
 public class OpenCVProcessor implements ImageProcessor {
+	
+	private FileManager fileManager;
+	
+	public OpenCVProcessor(FileManager fileManager) {
+		this.fileManager = fileManager;
+	}
 
 	/**
 	 * @see ImageProcessor#process(String, ProcessInstruction)
@@ -26,7 +32,7 @@ public class OpenCVProcessor implements ImageProcessor {
 	@Override
 	public String process(String fileName, ProcessInstruction instruction) {
 		int colorMode = (instruction.isGrayscale()) ? Highgui.CV_LOAD_IMAGE_GRAYSCALE : Highgui.CV_LOAD_IMAGE_COLOR;
-		Mat original = Highgui.imread(ImageResource.FILE_STORAGE + fileName, colorMode);
+		Mat original = Highgui.imread(fileManager.getFilePath(fileName), colorMode);
 		
 		Mat result = new Mat();
 		
@@ -47,7 +53,7 @@ public class OpenCVProcessor implements ImageProcessor {
 		if (instruction.getBrightness() != null) {			
 			result.convertTo(result, -1, instruction.getBrightness(), 0);
 		}
-		String outputFileName = ImageResource.FILE_STORAGE + "_" + fileName;
+		String outputFileName = fileManager.getFilePath("_" + fileName);
 		Highgui.imwrite(outputFileName, result);
 	    return outputFileName;
 	}

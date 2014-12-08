@@ -4,6 +4,7 @@ import java.io.File;
 
 import com.mapfap.image.processing.ImageProcessor;
 import com.mapfap.image.processing.ImageProcessorFactory;
+import com.mapfap.image.util.FileManager;
 
 /**
  * Factory for ImageProcessor using OpenCV library.
@@ -25,14 +26,15 @@ public class OpenCVProcessorFactory extends ImageProcessorFactory {
 			"libopencv_highgui.so", "libopencv_imgproc.so", "libopencv_legacy.so", "libopencv_ml.so", "libopencv_nonfree.so",
 			"libopencv_objdetect.so", "libopencv_ocl.so", "libopencv_photo.so", "libopencv_stitching.so", "libopencv_superres.so", "libopencv_ts.a",
 			"libopencv_video.so", "libopencv_videostab.so" };
-
+	
 	/**
 	 * @see ImageProcessorFactory#getImageProcessor()
 	 */
 	@Override
 	public ImageProcessor getImageProcessor() {
 		checkOS();
-		return new OpenCVProcessor();
+		FileManager fileManager = FileManager.getInstance();
+		return new OpenCVProcessor(fileManager);
 	}
 
 	/**

@@ -21,7 +21,7 @@ public abstract class ImageProcessorFactory {
 	 */
 	public static ImageProcessorFactory getInstance() {
 		if (factory == null) {
-			String factoryClass = System.getProperty("ImageProcessor");
+			String factoryClass = System.getProperty("processor");
 			if (factoryClass != null) {
 				ClassLoader loader = ImageProcessorFactory.class.getClassLoader();
 				try {

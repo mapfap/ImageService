@@ -42,6 +42,7 @@ import com.mapfap.image.persistence.ImagePersistence;
 import com.mapfap.image.processing.ImageProcessor;
 import com.mapfap.image.processing.ImageProcessorFactory;
 import com.mapfap.image.processing.ProcessInstruction;
+import com.mapfap.image.util.FileManager;
 
 /**
  * Resource for JAX-RS service.
@@ -55,12 +56,10 @@ public class ImageResource {
 
 	@Context
 	UriInfo uriInfo;
+	private FileManager fileManager;
 	private static ImagePersistence persistence;
 	private static ImageProcessor processor;
-	public static final String FILE_STORAGE = "images/";
-	
-	public static final String ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
-	public static final String EXPOSE_HEADER = "Access-Control-Expose-Headers";
+	private static final String DEFAULT_IMAGE_PARAMS = "?width=300&height=300";
 	
 	/**
 	 * Construct ImageResource with setup necessary stuff.
@@ -74,26 +73,8 @@ public class ImageResource {
 		EntityManager manager = factory.createEntityManager();
 		persistence = new ImagePersistence(manager);
 	
-		createFileStorage();
-	}
-	
-	private void createFileStorage() {
-		File theDir = new File(FILE_STORAGE);
-
-		  if (!theDir.exists()) {
-		    System.out.println("creating directory: " + FILE_STORAGE);
-		    boolean result = false;
-
-		    try {
-		        theDir.mkdir();
-		        result = true;
-		     } catch (SecurityException e){
-		        e.printStackTrace();
-		     }        
-		     if (result) {    
-		       System.out.println("DIR created");  
-		     }
-		  }
+		fileManager = FileManager.getInstance();
+		fileManager.createFileStorage();
 	}
 
 	/**
@@ -105,21 +86,19 @@ public class ImageResource {
 	@Path("")
 	@Consumes({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	public Response storeImage(JAXBElement<Link> element) {
-		System.out.println("dfv");
 		URL sourceURL = element.getValue().getHref();
 		URI location = null;
 		try {
 			  InputStream is = sourceURL.openStream ();
 			  byte[] bytes = IOUtils.toByteArray(is);
-			  location = storeImage(Calendar.getInstance().getTimeInMillis() + ".png", bytes);
+			  location = storeImage(getTimestamp() + ".png", bytes);
 			}
 			catch (IOException e) {
 				e.printStackTrace();
 			}
-		
-		return Response.created(location).header("Access-Control-Allow-Headers", "Content-Type").header(ALLOW_ORIGIN_HEADER, "*").header(EXPOSE_HEADER, "Location").build();
+		return locationResponse(location);
 	}
-	
+
 	/**
 	 * Store image on the server by sending the stream directly.
 	 * @param bytes array of byte data of image.
@@ -129,8 +108,8 @@ public class ImageResource {
 	@Path("")
 	@Consumes({ "image/png", "image/jpg" })
 	public Response storeImage(byte[] bytes) {
-		URI uri = storeImage(Calendar.getInstance().getTimeInMillis() + "", bytes);
-		return Response.created(uri).header(ALLOW_ORIGIN_HEADER, "*").header(EXPOSE_HEADER, "Location").build();
+		URI location = storeImage(getTimestamp(), bytes);
+		return locationResponse(location);
 	}
 	
 	/**
@@ -147,12 +126,22 @@ public class ImageResource {
 		if (fileName.length() > 15) {
 			fileName = fileName.substring(15);
 		}
-		fileName = Calendar.getInstance().getTimeInMillis() + "_" + fileName; // prevent name conflicted.
+		fileName = getTimestamp() + "_" + fileName; // prevent name conflicted.
 		
-		URI uri = storeImage(fileName, bytes);
-		return Response.created(uri).header(ALLOW_ORIGIN_HEADER, "*").header(EXPOSE_HEADER, "Location").build();
+		URI location = storeImage(fileName, bytes);
+		return locationResponse(location);
 	}
 	
+	/**
+	 * Response with specified location header.
+	 * This enables 'AJAX' to read location header.
+	 * @param location URI of the resource.
+	 * @return HTTP Response with specified location header.
+	 */
+	private Response locationResponse(URI location) {
+		return Response.created(location).header("Access-Control-Expose-Headers", "Location").build();
+	}
+
 	/**
 	 * Store image on the server.
 	 * This will be called from all storeImage() methods.
@@ -161,10 +150,9 @@ public class ImageResource {
 	 * @return URI of image that stored.
 	 */
 	private URI storeImage(String fileName, byte[] bytes) {
-		String filePath = FILE_STORAGE + fileName;
 		
 		try {
-			FileOutputStream out = new FileOutputStream(filePath);
+			FileOutputStream out = fileManager.getFileOutputStream(fileName);
 			out.write(bytes);
 			out.close();
 		} catch (Exception e) {
@@ -178,7 +166,7 @@ public class ImageResource {
 		
 		URI uri = null;
 		try {
-			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + "?width=300&height=300");
+			uri = new URI(uriInfo.getAbsolutePath() + "/" + id + DEFAULT_IMAGE_PARAMS);
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		}
@@ -202,11 +190,11 @@ public class ImageResource {
 			Entry entry = new Entry();
 			Link link = new Link();
 			entry.setLink(link);
-			link.setHref(new URL(uriInfo.getAbsolutePath() + "/" + image.getId() + "?width=300&height=300"));
+			link.setHref(new URL(uriInfo.getAbsolutePath() + "/" + image.getId() + DEFAULT_IMAGE_PARAMS));
 			entries.add(entry);
 		}
 		
-		return Response.ok(feed).header(ALLOW_ORIGIN_HEADER, "*").build();
+		return Response.ok(feed).build();
 	}
 
 	/**
@@ -242,14 +230,13 @@ public class ImageResource {
 		
 		String fileName = image.getFileName();
 		
-		File file = new File(FILE_STORAGE + fileName);
+		File file = fileManager.getFile(fileName);
 		if (! file.isFile()) {
 			return error(HttpStatus.INTERNAL_SERVER_ERROR_500, "file is missing");
 		}
 		
-		String newFileName = processor.process(fileName, new ProcessInstruction(width, height, brightness, gaussian, grayscale));
-		
-		return Response.ok(new File(newFileName)).header(ALLOW_ORIGIN_HEADER, "*").build();
+		String outputFileName = processor.process(fileName, new ProcessInstruction(width, height, brightness, gaussian, grayscale));
+		return Response.ok(new File(outputFileName)).build();
 	}
 
 	/**
@@ -277,5 +264,13 @@ public class ImageResource {
 	 */
 	private Response error(int status, String text) {
 		return Response.status(status).entity(text).type(MediaType.TEXT_PLAIN).build();
+	}
+	
+	/**
+	 * Get current timestamp which is time is milliseconds.
+	 * @return current timestamp in milliseconds.
+	 */
+	private String getTimestamp() {
+		return String.valueOf(Calendar.getInstance().getTimeInMillis());
 	}
 }

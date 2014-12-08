@@ -27,6 +27,8 @@ import com.mapfap.image.resource.ImageResource;
  */
 public class Main {
 	
+	private static final String VERSION = "0.12";
+	
 	static int PORT = 8080;
 	private static Server server;
 
@@ -92,7 +94,7 @@ public class Main {
 	 * Wait key input from user to exit.
 	 */
 	public static void waitForExit() {
-		System.out.println("Server started.  Press ENTER to exit.");
+		System.out.println("Image Manipulation Service v." + VERSION + "\nPress ENTER to exit.");
 		try {
 			System.in.read();
 			System.out.println("Stopping server.");
