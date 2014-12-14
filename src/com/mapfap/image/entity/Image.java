@@ -15,6 +15,7 @@ public class Image {
 	private String id;
 	private String fileName;
 	private Timestamp createdTime;
+	private String ownerID;
 
 	public Image() {
 		
@@ -48,6 +49,14 @@ public class Image {
 
 	public void setCreatedTime(Timestamp createdTime) {
 		this.createdTime = createdTime;
+	}
+
+	public String getOwnerID() {
+		return ownerID;
+	}
+
+	public void setOwnerID(String ownerID) {
+		this.ownerID = ownerID;
 	}
 	
 }

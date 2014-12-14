@@ -100,8 +100,8 @@ public class ImagePersistence {
 			int deletedCount = query.executeUpdate();
 			tx.commit();
 			System.out.println(deletedCount + " row(s) deleted.");
-		} catch ( EntityExistsException ex ) {
-			handleDatabaseError( tx, ex );
+		} catch (EntityExistsException ex) {
+			handleDatabaseError(tx, ex);
 		}
 	}
 	

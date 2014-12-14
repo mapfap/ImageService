@@ -16,6 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -28,6 +29,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBElement;
+import javax.xml.ws.WebServiceException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.oltu.oauth2.client.OAuthClient;
@@ -77,6 +79,7 @@ public class ImageResource {
 	private static final String GOOGLE_CLIENT_ID = "886476666960-6c4hgkc9bs339r58osjclma5cs3tfdtg.apps.googleusercontent.com";
 	private static final String GOOGLE_CLIENT_SECRET = "o3ryzVBDTuynUsx-YmtqYjt4";
 	private static final String GOOGLE_REDIRECT_URIS = "http://www.mapfap.tk/images/login/callback";
+	private static final String CLIENT_SITE = "http://www.mapfap.com/play";
 	
 	/**
 	 * Construct ImageResource with setup necessary stuff.
@@ -108,7 +111,7 @@ public class ImageResource {
 		try {
 			  InputStream is = sourceURL.openStream ();
 			  byte[] bytes = IOUtils.toByteArray(is);
-			  location = storeImage(getTimestamp() + ".png", bytes);
+			  location = storeImage(getTimestamp() + ".png", bytes, null);
 			}
 			catch (IOException e) {
 				e.printStackTrace();
@@ -120,7 +123,6 @@ public class ImageResource {
 	@Path("login")
 	@Produces({ MediaType.TEXT_HTML })
 	public Response login() {
-		
 		try {
 			OAuthClientRequest request = OAuthClientRequest
 					   .authorizationProvider(OAuthProviderType.GOOGLE)
@@ -133,17 +135,14 @@ public class ImageResource {
 			
 		} catch (OAuthSystemException e) {
 			e.printStackTrace();
+			throw new WebServiceException();
 		}
-		
-		return Response.ok().entity("FAIL จ้า").build();
 	}
 	
 	@GET
 	@Path("login/callback")
 	@Produces({ MediaType.TEXT_HTML })
-	public Response oauthCallback(@QueryParam("code") String code) {
-		
-		
+	public Response loginCallback(@QueryParam("code") String code) {
 		try {
 			OAuthClientRequest request = OAuthClientRequest
 					.tokenProvider(OAuthProviderType.GOOGLE)
@@ -156,24 +155,32 @@ public class ImageResource {
 
 			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
 			OAuthAccessTokenResponse oAuthResponse = oAuthClient.accessToken(request, OAuthAccessTokenResponse.class);
-
 			String accessToken = oAuthResponse.getAccessToken();
-			
-			System.out.println(accessToken);
-			OAuthClientRequest bearerClientRequest = new OAuthBearerClientRequest("https://www.googleapis.com/oauth2/v2/userinfo")
-				.setAccessToken(accessToken)
-				.buildQueryMessage();
-	 
-			OAuthResourceResponse resourceResponse = oAuthClient.resource(bearerClientRequest, OAuth.HttpMethod.GET, OAuthResourceResponse.class);
-			JSONObject userInfo = new JSONObject(resourceResponse.getBody());
-			System.out.println(userInfo.get("id"));
-			
-			return redirect(request.getLocationUri());
+
+			String name = getUserInfo(accessToken).get("name").toString();
+			return redirect(CLIENT_SITE + "?name=" + name + "&token=" + accessToken);
 
 		} catch (OAuthSystemException | OAuthProblemException e) {
 			e.printStackTrace();
 		}
-		return null;
+		return Response.status(HttpStatus.BAD_REQUEST_400).build();
+	}
+	
+	private JSONObject getUserInfo(String accessToken) {
+		OAuthClientRequest bearerClientRequest;
+		try {
+			bearerClientRequest = new OAuthBearerClientRequest("https://www.googleapis.com/oauth2/v2/userinfo")
+			.setAccessToken(accessToken)
+			.buildQueryMessage();
+			
+			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+			OAuthResourceResponse resourceResponse = oAuthClient.resource(bearerClientRequest, OAuth.HttpMethod.GET, OAuthResourceResponse.class);
+			return new JSONObject(resourceResponse.getBody());
+			
+		} catch (OAuthSystemException | OAuthProblemException e) {
+			e.printStackTrace();
+			throw new WebServiceException();
+		}
 	}
 
 	/**
@@ -185,7 +192,7 @@ public class ImageResource {
 	@Path("")
 	@Consumes({ "image/png", "image/jpg" })
 	public Response storeImage(byte[] bytes) {
-		URI location = storeImage(getTimestamp(), bytes);
+		URI location = storeImage(getTimestamp(), bytes, null);
 		return locationResponse(location);
 	}
 	
@@ -197,7 +204,14 @@ public class ImageResource {
 	@POST
 	@Path("")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response storeImage(@FormDataParam("file") byte[] bytes, @FormDataParam("file") FormDataContentDisposition contentDispositionHeader) {
+	public Response storeImage(
+			@FormDataParam("file") byte[] bytes,
+			@FormDataParam("file") FormDataContentDisposition contentDispositionHeader,
+			// This suppose to be HeaderParam("Authoriztion")
+			// But due to Ajax's limitation of CORS, I have to use it as QueryParam 
+			@QueryParam("token") String accessToken
+		) {
+		
 		String fileName = contentDispositionHeader.getFileName();
 		
 		if (fileName.length() > 15) {
@@ -205,10 +219,16 @@ public class ImageResource {
 		}
 		fileName = getTimestamp() + "_" + fileName; // prevent name conflicted.
 		
-		URI location = storeImage(fileName, bytes);
+		URI location;
+		if (accessToken != null) {			
+			location = storeImage(fileName, bytes , getUserInfo(accessToken).getString("id"));
+		} else {			
+			location = storeImage(fileName, bytes, null);
+		}
+		
 		return locationResponse(location);
 	}
-	
+
 	/**
 	 * Response with specified location header.
 	 * This enables 'AJAX' to read location header.
@@ -224,9 +244,10 @@ public class ImageResource {
 	 * This will be called from all storeImage() methods.
 	 * @param fileName name of file.
 	 * @param bytes array of byte data of image.
+	 * @param ownerID ID of image owner, null for anonymous upload.
 	 * @return URI of image that stored.
 	 */
-	private URI storeImage(String fileName, byte[] bytes) {
+	private URI storeImage(String fileName, byte[] bytes, String ownerID) {
 		
 		try {
 			FileOutputStream out = fileManager.getFileOutputStream(fileName);
@@ -238,6 +259,13 @@ public class ImageResource {
 		}
 		
 		Image image = new Image(fileName);
+		
+		String owner = "";
+		if (ownerID != null) {	
+			owner = ownerID;
+		} 
+		image.setOwnerID(owner);
+		
 		persistence.save(image);
 		String id = persistence.load(image.getId()).getId(); // make sure it's saved.
 		
@@ -305,6 +333,8 @@ public class ImageResource {
 			return Response.status(HttpStatus.NOT_FOUND_404).build();
 		}
 		
+//		System.out.println("owner: " + image.getOwnerID());
+		
 		String fileName = image.getFileName();
 		
 		File file = fileManager.getFile(fileName);
@@ -315,6 +345,59 @@ public class ImageResource {
 		String outputFileName = processor.process(fileName, new ProcessInstruction(width, height, brightness, gaussian, grayscale));
 		return Response.ok(new File(outputFileName)).build();
 	}
+	
+	/**
+	 * Delete image from server.
+	 * @param id ID of image to be deleted.
+	 * @param accessToken access token for authentication.
+	 * @return Response OK if success.
+	 */
+	@DELETE 
+	@Path("{id}")
+	@Produces({ "image/png" })
+	public Response deleteImage(
+			@PathParam("id") String id,
+			// This suppose to be HeaderParam("Authoriztion")
+			// But due to Ajax's limitation of CORS, I have to use it as QueryParam 
+			@QueryParam("token") String accessToken
+			) {
+		
+		Image image = persistence.load(id);
+		if (image == null) {
+			return Response.status(HttpStatus.NOT_FOUND_404).build();
+		}
+		
+		// Anonymous uploaded images are not allow to deleted. 
+		if (image.getOwnerID().equals("")) {
+			return error(HttpStatus.FORBIDDEN_403, "this image are not allow to delete");
+		}
+		
+		if (accessToken == null) {
+			return error(HttpStatus.UNAUTHORIZED_401, "missing token");
+		}
+		
+		// Now, acquire ID using accessToken and compare with image's ownerID.
+		try {
+		
+		String userID = getUserInfo(accessToken).getString("id");
+		if (userID.equals(image.getOwnerID())) {
+			// It's OK to delete now.
+			persistence.delete(image.getId());
+			File file = fileManager.getFile(image.getFileName());
+			if (file.isFile()) {
+				file.delete();
+			}
+			return Response.ok().build();
+		} else {
+			return error(HttpStatus.FORBIDDEN_403, "you have no right to delete this image");
+		}
+		
+		} catch (WebServiceException e) {			
+			return error(HttpStatus.BAD_REQUEST_400, "invalid token");
+		}
+		
+	}
+	
 
 	/**
 	 * Validate width and height of Request.

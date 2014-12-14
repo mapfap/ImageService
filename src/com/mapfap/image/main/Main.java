@@ -69,7 +69,7 @@ public class Main {
 	        
 	        
 	        FilterHolder filterHolder = new FilterHolder( DoSFilter.class );
-			filterHolder.setInitParameter("maxRequestsPerSec", "1");
+			filterHolder.setInitParameter("maxRequestsPerSec", "5");
 			filterHolder.setInitParameter("delayMs", "-1");
 			
 			final EnumSet<DispatcherType> REQUEST_SCOPE = EnumSet.of(DispatcherType.REQUEST);
