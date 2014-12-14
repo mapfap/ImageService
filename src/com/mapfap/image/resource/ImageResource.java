@@ -30,9 +30,21 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBElement;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.oltu.oauth2.client.OAuthClient;
+import org.apache.oltu.oauth2.client.URLConnectionClient;
+import org.apache.oltu.oauth2.client.request.OAuthBearerClientRequest;
+import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
+import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
+import org.apache.oltu.oauth2.common.OAuth;
+import org.apache.oltu.oauth2.common.OAuthProviderType;
+import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.apache.oltu.oauth2.common.message.types.GrantType;
+import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONObject;
 
 import com.mapfap.image.entity.Image;
 import com.mapfap.image.entity.atom.Entry;
@@ -43,6 +55,7 @@ import com.mapfap.image.processing.ImageProcessor;
 import com.mapfap.image.processing.ImageProcessorFactory;
 import com.mapfap.image.processing.ProcessInstruction;
 import com.mapfap.image.util.FileManager;
+import com.mapfap.image.util.OAuthAccessTokenResponse;
 
 /**
  * Resource for JAX-RS service.
@@ -60,6 +73,10 @@ public class ImageResource {
 	private static ImagePersistence persistence;
 	private static ImageProcessor processor;
 	private static final String DEFAULT_IMAGE_PARAMS = "?width=300&height=300";
+	
+	private static final String GOOGLE_CLIENT_ID = "886476666960-6c4hgkc9bs339r58osjclma5cs3tfdtg.apps.googleusercontent.com";
+	private static final String GOOGLE_CLIENT_SECRET = "o3ryzVBDTuynUsx-YmtqYjt4";
+	private static final String GOOGLE_REDIRECT_URIS = "http://www.mapfap.tk/images/login/callback";
 	
 	/**
 	 * Construct ImageResource with setup necessary stuff.
@@ -97,6 +114,66 @@ public class ImageResource {
 				e.printStackTrace();
 			}
 		return locationResponse(location);
+	}
+	
+	@GET
+	@Path("login")
+	@Produces({ MediaType.TEXT_HTML })
+	public Response login() {
+		
+		try {
+			OAuthClientRequest request = OAuthClientRequest
+					   .authorizationProvider(OAuthProviderType.GOOGLE)
+					   .setClientId(GOOGLE_CLIENT_ID)
+					   .setRedirectURI(GOOGLE_REDIRECT_URIS)
+					   .setResponseType("code")
+					   .setScope("https://www.googleapis.com/auth/plus.me")
+					   .buildQueryMessage();
+			return redirect(request.getLocationUri());
+			
+		} catch (OAuthSystemException e) {
+			e.printStackTrace();
+		}
+		
+		return Response.ok().entity("FAIL จ้า").build();
+	}
+	
+	@GET
+	@Path("login/callback")
+	@Produces({ MediaType.TEXT_HTML })
+	public Response oauthCallback(@QueryParam("code") String code) {
+		
+		
+		try {
+			OAuthClientRequest request = OAuthClientRequest
+					.tokenProvider(OAuthProviderType.GOOGLE)
+					.setGrantType(GrantType.AUTHORIZATION_CODE)
+					.setClientId(GOOGLE_CLIENT_ID)
+					.setClientSecret(GOOGLE_CLIENT_SECRET)
+					.setRedirectURI(GOOGLE_REDIRECT_URIS)
+					.setCode(code)
+					.buildBodyMessage();
+
+			OAuthClient oAuthClient = new OAuthClient(new URLConnectionClient());
+			OAuthAccessTokenResponse oAuthResponse = oAuthClient.accessToken(request, OAuthAccessTokenResponse.class);
+
+			String accessToken = oAuthResponse.getAccessToken();
+			
+			System.out.println(accessToken);
+			OAuthClientRequest bearerClientRequest = new OAuthBearerClientRequest("https://www.googleapis.com/oauth2/v2/userinfo")
+				.setAccessToken(accessToken)
+				.buildQueryMessage();
+	 
+			OAuthResourceResponse resourceResponse = oAuthClient.resource(bearerClientRequest, OAuth.HttpMethod.GET, OAuthResourceResponse.class);
+			JSONObject userInfo = new JSONObject(resourceResponse.getBody());
+			System.out.println(userInfo.get("id"));
+			
+			return redirect(request.getLocationUri());
+
+		} catch (OAuthSystemException | OAuthProblemException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	/**
@@ -264,6 +341,15 @@ public class ImageResource {
 	 */
 	private Response error(int status, String text) {
 		return Response.status(status).entity(text).type(MediaType.TEXT_PLAIN).build();
+	}
+	
+	/**
+	 * Return response 302 to redirect the client.
+	 * @param uri redirect location.
+	 * @return response 302 for redirecting.
+	 */
+	private Response redirect(String uri) {
+		return Response.status(HttpStatus.FOUND_302).header(HttpHeader.LOCATION.asString(), uri).build();
 	}
 	
 	/**
