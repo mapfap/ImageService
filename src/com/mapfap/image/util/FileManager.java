@@ -4,6 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
+/**
+ * Facade controller to manage file. 
+ * @author Sarun Wongtanakarn
+ *
+ */
 public class FileManager {
 	
 	private static final String FILE_STORAGE = "images/";
@@ -20,6 +25,9 @@ public class FileManager {
 		return instance;
 	}
 	
+	/**
+	 * Create a directory for storing file.
+	 */
 	public void createFileStorage() {
 		File theDir = new File(FILE_STORAGE);
 
@@ -39,14 +47,29 @@ public class FileManager {
 		  }
 	}
 	
+	/**
+	 * Get full path of given file name.
+	 * @param fileName name of file to find.
+	 * @return full path of given file name.
+	 */
 	public String getFilePath(String fileName) {
 		return FILE_STORAGE + fileName;
 	}
 
+	/**
+	 * Get File from given file name.
+	 * @param fileName name of file to find.
+	 * @return File from given file name.
+	 */
 	public File getFile(String fileName) {
 		return new File(getFilePath(fileName));
 	}
 
+	/**
+	 * Get File as a stream from given file name.
+	 * @param fileName name of file to find.
+	 * @return File File as a stream from given file name.
+	 */
 	public FileOutputStream getFileOutputStream(String fileName) {
 		try {
 			return new FileOutputStream(getFilePath(fileName));

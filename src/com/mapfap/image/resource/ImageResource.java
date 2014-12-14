@@ -119,6 +119,11 @@ public class ImageResource {
 		return locationResponse(location);
 	}
 	
+	/**
+	 * Login page for user to access OAuth provider.
+	 * For now, it's Google OAuth 2.0.
+	 * @return Response redirect user to OAuth provider. 
+	 */
 	@GET
 	@Path("login")
 	@Produces({ MediaType.TEXT_HTML })
@@ -139,6 +144,13 @@ public class ImageResource {
 		}
 	}
 	
+	/**
+	 * This is callback is for OAuth provider to send 'authorization code'.
+	 * and then begin exchange it for 'access token'.
+	 * 
+	 * @param code the authorization code
+	 * @return Response to redirect user back to the origin page.
+	 */
 	@GET
 	@Path("login/callback")
 	@Produces({ MediaType.TEXT_HTML })
@@ -157,7 +169,7 @@ public class ImageResource {
 			OAuthAccessTokenResponse oAuthResponse = oAuthClient.accessToken(request, OAuthAccessTokenResponse.class);
 			String accessToken = oAuthResponse.getAccessToken();
 
-			String name = getUserInfo(accessToken).get("name").toString();
+			String name = getUserInfo(accessToken).getString("name");
 			return redirect(CLIENT_SITE + "?name=" + name + "&token=" + accessToken);
 
 		} catch (OAuthSystemException | OAuthProblemException e) {
@@ -166,6 +178,11 @@ public class ImageResource {
 		return Response.status(HttpStatus.BAD_REQUEST_400).build();
 	}
 	
+	/**
+	 * Use the 'access token'  to acquire user information.
+	 * @param accessToken access token that received from previous process. 
+	 * @return user information.
+	 */
 	private JSONObject getUserInfo(String accessToken) {
 		OAuthClientRequest bearerClientRequest;
 		try {
@@ -220,8 +237,14 @@ public class ImageResource {
 		fileName = getTimestamp() + "_" + fileName; // prevent name conflicted.
 		
 		URI location;
-		if (accessToken != null) {			
-			location = storeImage(fileName, bytes , getUserInfo(accessToken).getString("id"));
+		if (accessToken != null) {
+			try {
+				JSONObject userInfo = getUserInfo(accessToken);				
+				location = storeImage(fileName, bytes , userInfo.getString("id"));
+			} catch (WebServiceException e) {
+				return error(HttpStatus.BAD_REQUEST_400, "invalid token");
+			}
+		
 		} else {			
 			location = storeImage(fileName, bytes, null);
 		}
