@@ -44,6 +44,7 @@ Very simple web browser client [here](https://github.com/mapfap/ImageService-Sim
 * Apache Commons
 * Apache Derby
 * EclipseLink JPA
+* Apache Oltu
 
 ## Image Processing Library
 You can choose to use any libraries (Abstract Factory)
