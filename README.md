@@ -52,6 +52,11 @@ You can choose to use any libraries (Abstract Factory)
 * [imgscalr](https://github.com/thebuzzmedia/imgscalr), PURE JAVA! This one already integrated in maven. a bit slower and less features but it's easy to distribute.
 
 ## Security Consideration
+* Cross application attack!<br>
+1. Mr.X has his own application that use Google OAuth and has permission to "Know who you are on Google".
+2. When he receive an 'access token' from his user (Mr.Y).
+3. He can use that token and pretend to be Mr.Y and access the Image Service.
+
 * What if user send very large file
 * What if user repeatedly requests  1x1, 1x2, 1x3, ..., 1x10000000 ~ This would really hurts the server.
 * What if user try to get all images by keep scanning through increasing ID /images/1, /images/2, ..., /images/1000
