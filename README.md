@@ -1,10 +1,6 @@
 # Image Service
 RESTful image manipulation service
 
-# Demos
-* Cient [mapfap.com/play](http://mapfap.com/play)
-* Service [mapfap.tk/images](http://mapfap.tk/images/)
-
 ## What's it for?
 * Mobile App: Smartphones don't have enough memory to quickly process images, and it drains the battery.  Image Editor Service offloads this work to a remote service.
 * Studio: Use only one workstation to process all work.
